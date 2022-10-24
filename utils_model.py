@@ -3,7 +3,7 @@ from tensorflow import keras
 import numpy as np
 import utils_data
 
-BATCH_SIZE = 4
+BATCH_SIZE = 4  # WARNING! Big values can cause our of GPU memory error.
 
 
 def limit_GPU_memory(n_MB):

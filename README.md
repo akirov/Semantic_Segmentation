@@ -60,7 +60,7 @@ Result will be saved in image_pred.png file. Multiple imput images are also supp
 
 
 ### Tested on:
-Python 3.9.13 with OpenCV 4.6.0, keras 2.9.0, matplotlib 3.5.2, numpy 1.22.4, Pillow 9.1.1, tensorflow-gpu 2.9.1 (with CUDA 11.6)
+Python 3.9.13 with OpenCV 4.6.0, keras 2.9.0, matplotlib 3.5.2, numpy 1.22.4, Pillow 9.1.1, tensorflow-gpu 2.9.1 (with CUDA 11.6).
 
 
 ### References
