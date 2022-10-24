@@ -56,7 +56,7 @@ Images in `masks` are 512x512x1 grayscale, `photos` are 512x512x3 RGB. They can 
 
 * Inference (prediction):\
 `python segment.py infer -m unet -i ".../image.jpg" -s ".../saved_models/unet_tf-64flt_20ep.h5"`\
-Result will be saved in image_pred.png file. Multiple imput images are also supported.
+Result will be saved in image_mask.png file. Multiple imput images are also supported.
 
 
 ### Tested on:

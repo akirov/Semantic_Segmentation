@@ -209,7 +209,7 @@ def infer(input_images, output_folder = ".", saved_model=SAVE_MODEL_FILE):
         pred_mask = utils_data.upsize_mask(mask_rgb, image.shape[1], image.shape[0])
         # Apply mask on image?
         img_file_name = os.path.basename(img_uri)
-        result_file = img_file_name[:img_file_name.rfind('.')] + "_pred.png"
+        result_file = img_file_name[:img_file_name.rfind('.')] + "_mask.png"
         cv2.imwrite(os.path.join(output_folder, result_file), pred_mask)
 
 
