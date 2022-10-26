@@ -8,19 +8,19 @@ given a photo, segment mobile antenna parts and background into classes:
 
 Example photo, ground truth mask and segmentation result (predicted mask):
 
-|         Photo         | Mask (ground truth) |      Inference result      |
-|:---------------------:|:-------------------:|:--------------------------:|
-| ![Photo](./photo.jpg) | ![Mask](./mask.png) | ![Result](./mask_pred.png) |
+|                     Photo                      |             Mask (ground truth)              |      Inference result       |
+|:----------------------------------------------:|:--------------------------------------------:|:---------------------------:|
+| ![Photo](./labeled_data/some_photos/photo.jpg) | ![Mask](./labeled_data/some_masks/photo.png) | ![Result](./photo_mask.png) |
 
 Currently U-Net neural network architecture [1] is implemented with some modifications:
-![U-Net](./unet_tf.jpg)
+![U-Net](./saved_models/unet_tf.jpg)
 
 ### How to use:
-* Pre-process labeled data (optional), to make it more suitable for training:\
-`python segment.py pre_process -s ".../data" -d ".../training_data"`\
-Expected `data` folder structure (strings in [ ] are arbitrary, but have to match):
+* Pre-process labeled data (if not done already), to make it more suitable for training:\
+`python segment.py pre_process --source ".../labeled_data" --destination ".../training_data"`\
+Expected `labeled_data` folder structure (strings in [ ] are arbitrary, but have to match):
 ```
-     /data/
+     /labeled_data/
      -----/[pref1]_photos/
      --------------------/[img_name11.jpg]
      --------------------/[img_name12.jpg]
@@ -55,8 +55,8 @@ Images in `masks` are 512x512x1 grayscale, `photos` are 512x512x3 RGB. They can 
 ```  
 
 * Inference (prediction):\
-`python segment.py infer -m unet -i ".../image.jpg" -s ".../saved_models/unet_tf-64flt_20ep.h5"`\
-Result will be saved in image_mask.png file. Multiple imput images are also supported.
+`python segment.py infer -m unet -i ".../photo.jpg"`\
+Result will be saved in photo_mask.png file. Multiple imput images are also supported.
 
 
 ### Tested on:
