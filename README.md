@@ -40,8 +40,8 @@ Expected `labeled_data` folder structure (strings in [ ] are arbitrary, but have
 
 * Train U-Net model:\
 `python segment.py train  -d ".../training_data"  -m unet  -n 4`\
-Here 4 is the number of different classes. `training_data` folder's structure is given below.
-Images in `masks` are 512x512x1 grayscale, `photos` are 512x512x3 RGB. They can be produced with pre_process step.
+Here 4 is the number of different classes. Can be up to 255. The `training_data` folder's structure is given below.
+Images in `masks` are 512x512x1 grayscale (with values from 0 to n-1), `photos` are 512x512x3 RGB. They can be produced with pre_process step.
 ```
      /training_data/
      --------------/masks/
@@ -56,7 +56,7 @@ Images in `masks` are 512x512x1 grayscale, `photos` are 512x512x3 RGB. They can 
 
 * Inference (prediction):\
 `python segment.py infer -m unet -i ".../photo.jpg"`\
-Result will be saved in photo_mask.png file. Multiple imput images are also supported.
+Result will be saved in `photo_mask.png` file. Multiple imput images are also supported.
 
 
 ### Tested on:
