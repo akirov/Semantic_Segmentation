@@ -54,6 +54,7 @@ Trained model parameters will be saved in `saved_models/unet_tf.h5` file by defa
      --------------------/timg_00000001.png
      --------------------/...
 ```  
+![accuracy](./saved_models/dice_coef.png) ![loss](./saved_models/dice_loss.png)
 
 * Inference (prediction):\
 `python segment.py infer -m unet -i ".../photo.jpg"`\
