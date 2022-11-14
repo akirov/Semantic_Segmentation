@@ -63,7 +63,7 @@ if __name__ == "__main__":
     #print(config)
 
     if args.command == "pre_process":
-        utils_data.pre_process_images_and_masks(args.source, args.destination, (args.width,args.width), args.overwrite)
+        utils_data.pre_process_images_and_masks(args.labeled_data, args.destination, (args.width,args.width), args.overwrite)
 
     elif args.command == "train":
         if args.model == 'unet':
