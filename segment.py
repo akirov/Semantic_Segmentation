@@ -9,7 +9,7 @@ if __name__ == "__main__":
 
     parser_pre_process = subparsers.add_parser("pre_process", help="Pre-process labeled data to make it suitable for training")
     parser_pre_process.add_argument(
-        "--source", "-s", required=True, help="Labeled data root folder, containing SOME_photos and SOME_masks subfolders"
+        "--labeled_data", "-l", required=True, help="Labeled data root folder, containing SOME_photos and SOME_masks subfolders"
     )
     parser_pre_process.add_argument(
         "--destination", "-d", required=True, help="Folder where to put pre-processed training photos and masks"

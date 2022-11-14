@@ -17,7 +17,7 @@ Currently U-Net neural network architecture [1] is implemented with some modific
 
 ### How to use:
 * Pre-process labeled data (if not done already), to make it more suitable for training:\
-`python segment.py pre_process --source ".../labeled_data" --destination ".../training_data"`\
+`python segment.py pre_process -l ".../labeled_data" -d ".../training_data"`\
 Expected `labeled_data` folder structure (strings in [ ] are arbitrary, but have to match):
 ```
      /labeled_data/
