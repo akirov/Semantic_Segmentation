@@ -16,24 +16,28 @@ import cv2
 # Use base SegModel class and put all these there?
 
 GPU_MEM_TO_USE_MB = 8192  # 8 GB
-MAX_NUM_CLASSES = 255
 EPOCHS = 20
 SAVE_MODEL_FOLDER = "saved_models"
 SAVE_MODEL_FILE = os.path.join(SAVE_MODEL_FOLDER, "unet_tf.h5")
+USE_ONE_HOT = True
+USE_DICE_LOSS = True
 LR_ADAM = 0.00001
 DROPOUT = 0.50
 
 
-def load_saved_model(saved_model_file=SAVE_MODEL_FILE):
+def load_saved_model(saved_model_file=SAVE_MODEL_FILE, custom_objects=None):
     try:
-        saved_model = load_model(saved_model_file)
+        if custom_objects is not None:
+            saved_model = load_model(saved_model_file, custom_objects=custom_objects)
+        else:
+            saved_model = load_model(saved_model_file)
         return saved_model
     except (ImportError, IOError) as error:
         print(error)
         return None
 
 
-def create_model(num_classes=MAX_NUM_CLASSES, input_shape=(utils_data.TRAIN_IMG_SIZE, utils_data.TRAIN_IMG_SIZE, 3),
+def create_model(num_classes=utils_model.MAX_NUM_CLASSES, input_shape=(utils_data.TRAIN_IMG_SIZE, utils_data.TRAIN_IMG_SIZE, 3),
                  n_filters=64, use_dropout=False):  # Add loss, metrics and network depth params?
     inputs = Input(shape=input_shape)
 
@@ -105,11 +109,22 @@ def create_model(num_classes=MAX_NUM_CLASSES, input_shape=(utils_data.TRAIN_IMG_
 
     model = Model(inputs=inputs, outputs=conv10, name="U-Net")
 
-    # pixel-wise cross-entropy is not wery good metrics when we have too much background and small areas of other classes
-    model.compile(optimizer=Adam(learning_rate=LR_ADAM), loss=tf.keras.losses.SparseCategoricalCrossentropy(),  # from_logits=True <-- use this if we output classes, not probs
-                  metrics=['accuracy'])
-
-    # Dice loss (IoU)...
+    if USE_DICE_LOSS:
+        # Dice loss (IoU)
+        dice_metrics, dice_loss = utils_model.dice_metrics_and_loss()
+        model.compile(optimizer=Adam(learning_rate=LR_ADAM),
+                      loss=dice_loss,
+                      metrics=[dice_metrics])
+    else:
+        # pixel-wise accuracy is not very good metrics when we have too much background and small areas of other classes
+        if USE_ONE_HOT:
+            model.compile(optimizer=Adam(learning_rate=LR_ADAM),
+                          loss=tf.keras.losses.CategoricalCrossentropy(),  # CategoricalCrossentropy for one-hot labels
+                          metrics=['accuracy'])
+        else:
+            model.compile(optimizer=Adam(learning_rate=LR_ADAM),
+                          loss=tf.keras.losses.SparseCategoricalCrossentropy(),  # from_logits=True <-- use this if we output classes, not probs
+                          metrics=['accuracy'])
 
     return model
 
@@ -145,9 +160,9 @@ def train(training_data_folder, num_classes, batch_size=utils_model.BATCH_SIZE, 
 
     # Create batch generators. Or we can use tf.data.Dataset.from_tensor_slices((X,y))
     train_gen = utils_model.ImageBatchGenerator(train_imgmask_list, (utils_data.TRAIN_IMG_SIZE, utils_data.TRAIN_IMG_SIZE),\
-                                                batch_size)
+                                                batch_size, USE_ONE_HOT, num_classes)
     val_gen = utils_model.ImageBatchGenerator(test_imgmask_list, (utils_data.TRAIN_IMG_SIZE, utils_data.TRAIN_IMG_SIZE),\
-                                              batch_size)
+                                              batch_size, USE_ONE_HOT, num_classes)
 
     # Setup GPU
     #utils_model.limit_GPU_memory(GPU_MEM_TO_USE_MB)
@@ -169,8 +184,14 @@ def train(training_data_folder, num_classes, batch_size=utils_model.BATCH_SIZE, 
     training_hist = model.fit(train_gen, epochs=epochs, validation_data=val_gen, callbacks=callbacks)
 
     # Display learning curves
-    plt.plot(training_hist.history['accuracy'])
-    plt.plot(training_hist.history['val_accuracy'])
+    if USE_DICE_LOSS:
+        acc = 'dice_metrics'
+        val_acc = 'val_dice_metrics'
+    else:
+        acc = 'accuracy'
+        val_acc = 'val_accuracy'
+    plt.plot(training_hist.history[acc])
+    plt.plot(training_hist.history[val_acc])
     plt.title('model accuracy')
     plt.ylabel('accuracy')
     plt.xlabel('epoch')
@@ -185,12 +206,16 @@ def train(training_data_folder, num_classes, batch_size=utils_model.BATCH_SIZE, 
     plt.legend(['train', 'val'], loc='upper left')
     plt.show()
 
-    # Evaluate: infer on test data, confusion matrices, ... Extract this in a separate function?
+    # Evaluate: infer on test data, confusion matrices, ... Extract this in a separate function.
 
 
 def infer(input_images, output_folder = ".", saved_model=SAVE_MODEL_FILE):
     #utils_model.limit_GPU_memory(GPU_MEM_TO_USE_MB)
-    model = load_saved_model(saved_model)
+    if USE_DICE_LOSS:
+        dice_metrics, dice_loss = utils_model.dice_metrics_and_loss()
+        model = load_saved_model(saved_model, custom_objects={dice_loss.__name__: dice_loss, dice_metrics.__name__: dice_metrics})
+    else:
+        model = load_saved_model(saved_model)
     if model is None:
         print("ERROR loading {} model".format(saved_model))
         return

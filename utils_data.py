@@ -126,10 +126,14 @@ def read_and_pre_process_mask(mask_uri, output_shape=(TRAIN_IMG_SIZE,TRAIN_IMG_S
                 mask[mask == c] = nc
                 nc += 1
     if len(output_shape) > 2:
-        if len(output_shape) == 3 and output_shape[2] == 1:
-            mask = np.expand_dims(mask, 2)
-        else:  # one-hot or error
-            print("ERROR! One-hot is not implemented.")
+        if len(output_shape) == 3:
+            if output_shape[2] == 1:
+                mask = np.expand_dims(mask, 2)
+            else:  # elif output_shape[2] <= uc
+                # one-hot
+                mask = np.eye(output_shape[2], dtype=np.uint8)[mask]
+        else:
+            print("ERROR! Wrong output mask shape.")
             exit(-1)
     return mask, uc
 
@@ -158,7 +162,7 @@ def upsize_mask(mask, w, h):
 
 
 def apply_mask_to_image(image, mask):
-    # https://stackoverflow.com/questions/66095686/apply-a-segmentation-mask-through-opencv
+    # TODO https://stackoverflow.com/questions/66095686/apply-a-segmentation-mask-through-opencv
     return image
 
 
