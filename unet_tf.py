@@ -21,7 +21,7 @@ SAVE_MODEL_FOLDER = "saved_models"
 SAVE_MODEL_FILE = os.path.join(SAVE_MODEL_FOLDER, "unet_tf.h5")
 USE_ONE_HOT = True
 USE_DICE_LOSS = True
-LR_ADAM = 0.00001
+LR_ADAM = 0.0001
 DROPOUT = 0.50
 
 
