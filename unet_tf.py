@@ -19,6 +19,7 @@ GPU_MEM_TO_USE_MB = 8192  # 8 GB
 EPOCHS = 20
 SAVE_MODEL_FOLDER = "saved_models"
 SAVE_MODEL_FILE = os.path.join(SAVE_MODEL_FOLDER, "unet_tf.h5")
+TRAIN_VAL_SPLIT = 0.80
 USE_ONE_HOT = True
 USE_DICE_LOSS = True
 LR_ADAM = 0.0001
@@ -111,10 +112,10 @@ def create_model(num_classes=utils_model.MAX_NUM_CLASSES, input_shape=(utils_dat
 
     if USE_DICE_LOSS:
         # Dice loss (IoU)
-        dice_metrics, dice_loss = utils_model.dice_metrics_and_loss()
+        dice_coef, dice_loss = utils_model.dice_coef_and_loss(num_classes, USE_ONE_HOT)
         model.compile(optimizer=Adam(learning_rate=LR_ADAM),
                       loss=dice_loss,
-                      metrics=[dice_metrics])
+                      metrics=[dice_coef])
     else:
         # pixel-wise accuracy is not very good metrics when we have too much background and small areas of other classes
         if USE_ONE_HOT:
@@ -154,7 +155,7 @@ def train(training_data_folder, num_classes, batch_size=utils_model.BATCH_SIZE, 
     random.shuffle(imgmask_list)
 
     # Train/test split
-    split_mark = int(len(images_list)*0.70)  # 70% for training, 30% for testing
+    split_mark = int(len(images_list)*TRAIN_VAL_SPLIT)  # for training and validation
     train_imgmask_list = imgmask_list[:split_mark]
     test_imgmask_list = imgmask_list[split_mark:]
 
@@ -185,22 +186,28 @@ def train(training_data_folder, num_classes, batch_size=utils_model.BATCH_SIZE, 
 
     # Display learning curves
     if USE_DICE_LOSS:
-        acc = 'dice_metrics'
-        val_acc = 'val_dice_metrics'
+        acc = 'dice_coef'
+        val_acc = 'val_dice_coef'
+        acc_title = 'Dice metrics'
+        acc_axis = 'Dice coef'
+        loss_title = 'Dice loss'
     else:
         acc = 'accuracy'
         val_acc = 'val_accuracy'
+        acc_title = 'Model accuracy'
+        acc_axis = 'accuracy'
+        loss_title = 'Model loss'
     plt.plot(training_hist.history[acc])
     plt.plot(training_hist.history[val_acc])
-    plt.title('model accuracy')
-    plt.ylabel('accuracy')
+    plt.title(acc_title)
+    plt.ylabel(acc_axis)
     plt.xlabel('epoch')
     plt.legend(['train', 'val'], loc='upper left')
     plt.show()
 
     plt.plot(training_hist.history['loss'])
     plt.plot(training_hist.history['val_loss'])
-    plt.title('model loss')
+    plt.title(loss_title)
     plt.ylabel('loss')
     plt.xlabel('epoch')
     plt.legend(['train', 'val'], loc='upper left')
@@ -212,8 +219,8 @@ def train(training_data_folder, num_classes, batch_size=utils_model.BATCH_SIZE, 
 def infer(input_images, output_folder = ".", saved_model=SAVE_MODEL_FILE):
     #utils_model.limit_GPU_memory(GPU_MEM_TO_USE_MB)
     if USE_DICE_LOSS:
-        dice_metrics, dice_loss = utils_model.dice_metrics_and_loss()
-        model = load_saved_model(saved_model, custom_objects={dice_loss.__name__: dice_loss, dice_metrics.__name__: dice_metrics})
+        dice_coef, dice_loss = utils_model.dice_coef_and_loss()  # TODO pass num_classes and USE_ONE_HOT here!
+        model = load_saved_model(saved_model, custom_objects={dice_loss.__name__: dice_loss, dice_coef.__name__: dice_coef})
     else:
         model = load_saved_model(saved_model)
     if model is None:

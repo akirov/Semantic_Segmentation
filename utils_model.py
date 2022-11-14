@@ -65,8 +65,8 @@ class ImageBatchGenerator(keras.utils.Sequence):
 
 
 # Metrics utils
-def dice_metrics_and_loss(smooth=tf.keras.backend.epsilon(), one_hot=True, n_classes=MAX_NUM_CLASSES):  # TODO add param for background
-    def dice_metrics(y_true, y_pred):
+def dice_coef_and_loss(n_classes=MAX_NUM_CLASSES, one_hot=True, smooth=tf.keras.backend.epsilon()):  # TODO add param for background
+    def dice_coef(y_true, y_pred):
         """
         Dice metrics. Ignores index 0 (background).
         """
@@ -83,9 +83,9 @@ def dice_metrics_and_loss(smooth=tf.keras.backend.epsilon(), one_hot=True, n_cla
         """
         Dice loss to minimize.
         """
-        return 1 - dice_metrics(y_true, y_pred)
+        return 1 - dice_coef(y_true, y_pred)
 
-    return dice_metrics, dice_loss
+    return dice_coef, dice_loss
 
 
 # Evaluation utils...
