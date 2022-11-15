@@ -35,7 +35,7 @@ if __name__ == "__main__":
         "--batch_size", "-b", type=int, default=BATCH_SIZE, help="Batch size"
     )
     parser_train.add_argument(
-        "--epochs", "-e", type=int, default=None, help="Batch size"
+        "--epochs", "-e", type=int, default=None, help="Number of epochs"
     )
     parser_train.add_argument(
         "--save_model", "-s", type=str, default=None, help="Save the model in a file URI"
