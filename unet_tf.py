@@ -22,8 +22,9 @@ SAVE_MODEL_FILE = os.path.join(SAVE_MODEL_FOLDER, "unet_tf.h5")
 TRAIN_VAL_SPLIT = 0.80
 USE_ONE_HOT = True
 USE_DICE_LOSS = False
+USE_DROPOUT = False
+DROP_RATE = 0.50
 LR_ADAM = 0.0001
-DROPOUT = 0.50
 
 
 def load_saved_model(saved_model_file=SAVE_MODEL_FILE, custom_objects=None):
@@ -39,7 +40,7 @@ def load_saved_model(saved_model_file=SAVE_MODEL_FILE, custom_objects=None):
 
 
 def create_model(num_classes=utils_model.MAX_NUM_CLASSES, input_shape=(utils_data.TRAIN_IMG_SIZE, utils_data.TRAIN_IMG_SIZE, 3),
-                 n_filters=64, use_dropout=False):  # Add loss, metrics and network depth params?
+                 n_filters=64, use_dropout=USE_DROPOUT):  # Add loss, metrics and network depth params?
     inputs = Input(shape=input_shape)
 
     conv1 = Conv2D(n_filters, 3, activation='relu', dilation_rate=2, padding='same', kernel_initializer='he_normal')(inputs)
@@ -65,7 +66,7 @@ def create_model(num_classes=utils_model.MAX_NUM_CLASSES, input_shape=(utils_dat
     conv4 = Conv2D(n_filters*8, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv4)
     conv4 = BatchNormalization()(conv4)
     if use_dropout:
-        out4 = Dropout(DROPOUT)(conv4, training=True)
+        out4 = Dropout(DROP_RATE)(conv4, training=True)
     else:
         out4 = conv4
     pool4 = MaxPool2D(pool_size=(2, 2))(out4)
@@ -75,7 +76,7 @@ def create_model(num_classes=utils_model.MAX_NUM_CLASSES, input_shape=(utils_dat
     conv5 = Conv2D(n_filters*16, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv5)
     conv5 = BatchNormalization()(conv5)
     if use_dropout:
-        out5 = Dropout(DROPOUT)(conv5, training=True)
+        out5 = Dropout(DROP_RATE)(conv5, training=True)
     else:
         out5 = conv5
 
@@ -228,6 +229,7 @@ def infer(input_images, output_folder = ".", saved_model=SAVE_MODEL_FILE):
         return
     model.summary()
     for img_uri in input_images:
+        # TODO Use sliding window instead of scaling?
         img = utils_data.read_and_pre_process_image(img_uri, normalize=True)
         if img is None:
             continue

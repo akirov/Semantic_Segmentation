@@ -5,7 +5,7 @@ import numpy as np
 IMAGES_FOLDER = "photos"
 MASKS_FOLDER = "masks"
 TRAIN_IMG_PREFIX = "timg_"
-TRAIN_IMG_SIZE = 512
+TRAIN_IMG_SIZE = 512  # in pixels, assuming square image (width == height); or set width and height separately?
 
 
 def get_training_images_and_masks(root):

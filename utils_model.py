@@ -69,6 +69,7 @@ def dice_coef_and_loss(n_classes=MAX_NUM_CLASSES, one_hot=True, smooth=tf.keras.
     def dice_coef(y_true, y_pred):
         """
         Dice metrics. Ignores index 0 (background).
+        y_pred is in one-hot format, y_true will be converted, if it is not.
         """
         if one_hot:
             y_true_f = K.cast(K.flatten(y_true[...,1:]), 'float32')
