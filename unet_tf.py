@@ -22,6 +22,7 @@ SAVE_MODEL_FILE = os.path.join(SAVE_MODEL_FOLDER, "unet_tf.h5")
 TRAIN_VAL_SPLIT = 0.80
 USE_ONE_HOT = True
 USE_DICE_LOSS = False
+USE_IOU_LOSS = False
 USE_DROPOUT = False
 DROP_RATE = 0.50
 LR_ADAM = 0.0001
@@ -112,11 +113,17 @@ def create_model(num_classes=utils_model.MAX_NUM_CLASSES, input_shape=(utils_dat
     model = Model(inputs=inputs, outputs=conv10, name="U-Net")
 
     if USE_DICE_LOSS:
-        # Dice loss (IoU)
+        # Dice loss
         dice_coef, dice_loss = utils_model.dice_coef_and_loss(num_classes, USE_ONE_HOT)
         model.compile(optimizer=Adam(learning_rate=LR_ADAM),
                       loss=dice_loss,
                       metrics=[dice_coef])
+    elif USE_IOU_LOSS:
+        # IoU loss
+        iou_coef, iou_loss = utils_model.IoU_coef_and_loss(num_classes, USE_ONE_HOT)
+        model.compile(optimizer=Adam(learning_rate=LR_ADAM),
+                      loss=iou_loss,
+                      metrics=[iou_coef])
     else:
         # pixel-wise accuracy is not very good metrics when we have too much background and small areas of other classes
         if USE_ONE_HOT:
@@ -192,6 +199,12 @@ def train(training_data_folder, num_classes, batch_size=utils_model.BATCH_SIZE, 
         acc_title = 'Dice metrics'
         acc_axis = 'Dice coef'
         loss_title = 'Dice loss'
+    elif USE_IOU_LOSS:
+        acc = 'iou_coef'
+        val_acc = 'val_iou_coef'
+        acc_title = 'IoU metrics'
+        acc_axis = 'IoU coef'
+        loss_title = 'IoU loss'
     else:
         acc = 'accuracy'
         val_acc = 'val_accuracy'
@@ -222,6 +235,10 @@ def infer(input_images, output_folder = ".", saved_model=SAVE_MODEL_FILE):
     if USE_DICE_LOSS:
         dice_coef, dice_loss = utils_model.dice_coef_and_loss()  # TODO pass num_classes and USE_ONE_HOT here!
         model = load_saved_model(saved_model, custom_objects={dice_loss.__name__: dice_loss, dice_coef.__name__: dice_coef})
+    elif USE_IOU_LOSS:
+        iou_coef, iou_loss = utils_model.IoU_coef_and_loss()  # TODO pass num_classes and USE_ONE_HOT here!
+        model = load_saved_model(saved_model,
+                                 custom_objects={iou_loss.__name__: iou_loss, iou_coef.__name__: iou_coef})
     else:
         model = load_saved_model(saved_model)
     if model is None:

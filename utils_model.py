@@ -65,6 +65,7 @@ class ImageBatchGenerator(keras.utils.Sequence):
 
 
 # Metrics utils
+
 def dice_coef_and_loss(n_classes=MAX_NUM_CLASSES, one_hot=True, smooth=tf.keras.backend.epsilon()):  # TODO add param for background
     def dice_coef(y_true, y_pred):
         """
@@ -76,8 +77,8 @@ def dice_coef_and_loss(n_classes=MAX_NUM_CLASSES, one_hot=True, smooth=tf.keras.
         else:
             y_true_f = K.cast(K.flatten(K.one_hot(y_true, num_classes=n_classes)[..., 1:]), 'float32')
         y_pred_f = K.flatten(y_pred[...,1:])
-        intersect = K.sum(y_true_f * y_pred_f, axis=-1)
-        denom = K.sum(y_true_f + y_pred_f, axis=-1)
+        intersect = K.sum(y_true_f * y_pred_f, axis=-1)  # Intersection
+        denom = K.sum(y_true_f + y_pred_f, axis=-1)  # Combined number of pixels (= union + intersection)
         return K.mean((2. * intersect / (denom + smooth)))
 
     def dice_loss(y_true, y_pred):
@@ -87,6 +88,30 @@ def dice_coef_and_loss(n_classes=MAX_NUM_CLASSES, one_hot=True, smooth=tf.keras.
         return 1 - dice_coef(y_true, y_pred)
 
     return dice_coef, dice_loss
+
+
+def IoU_coef_and_loss(n_classes=MAX_NUM_CLASSES, one_hot=True, smooth=tf.keras.backend.epsilon()):  # TODO add param for background
+    def iou_coef(y_true, y_pred):
+        """
+        IoU metrics. Ignores index 0 (background).
+        y_pred is in one-hot format, y_true will be converted, if it is not.
+        """
+        if one_hot:
+            y_true_f = K.cast(K.flatten(y_true[...,1:]), 'float32')
+        else:
+            y_true_f = K.cast(K.flatten(K.one_hot(y_true, num_classes=n_classes)[..., 1:]), 'float32')
+        y_pred_f = K.flatten(y_pred[...,1:])
+        intersect = K.sum(y_true_f * y_pred_f, axis=-1)  # Intersection. Or K.sum(K.abs(...?
+        union = K.sum(y_true_f + y_pred_f, axis=-1) - intersect
+        return K.mean((intersect / (union + smooth)))
+
+    def iou_loss(y_true, y_pred):
+        """
+        Dice loss to minimize.
+        """
+        return 1 - iou_coef(y_true, y_pred)
+
+    return iou_coef, iou_loss
 
 
 # Evaluation utils...
