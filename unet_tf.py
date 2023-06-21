@@ -5,6 +5,7 @@ from tensorflow.keras.layers import Input, Conv2D, BatchNormalization, MaxPool2D
 from tensorflow.keras.models import Model, load_model
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping, ReduceLROnPlateau
+from tensorflow.keras.metrics import MeanIoU, OneHotMeanIoU
 import tensorflow as tf
 from matplotlib import pyplot as plt
 import numpy as np
@@ -15,6 +16,7 @@ import cv2
 
 # Use base SegModel class and put all these there?
 
+# TODO Put these in a config file
 GPU_MEM_TO_USE_MB = 8192  # 8 GB
 EPOCHS = 20
 SAVE_MODEL_FOLDER = "saved_models"
@@ -23,6 +25,7 @@ TRAIN_VAL_SPLIT = 0.80
 USE_ONE_HOT = True
 USE_DICE_LOSS = False
 USE_IOU_LOSS = False
+USE_MIOU_METRICS = True
 USE_DROPOUT = False
 DROP_RATE = 0.50
 LR_ADAM = 0.0001
@@ -124,6 +127,15 @@ def create_model(num_classes=utils_model.MAX_NUM_CLASSES, input_shape=(utils_dat
         model.compile(optimizer=Adam(learning_rate=LR_ADAM),
                       loss=iou_loss,
                       metrics=[iou_coef])
+    elif USE_MIOU_METRICS:
+        if USE_ONE_HOT:
+            model.compile(optimizer=Adam(learning_rate=LR_ADAM),
+                          loss=tf.keras.losses.CategoricalCrossentropy(),
+                          metrics=[OneHotMeanIoU(num_classes=num_classes, name='mIOU')])  # ['accuracy', OneHotMeanIoU(...)] ?
+        else:
+            model.compile(optimizer=Adam(learning_rate=LR_ADAM),
+                          loss=tf.keras.losses.SparseCategoricalCrossentropy(),
+                          metrics=[MeanIoU(num_classes=num_classes, name='mIOU')])
     else:
         # pixel-wise accuracy is not very good metrics when we have too much background and small areas of other classes
         if USE_ONE_HOT:
@@ -205,6 +217,12 @@ def train(training_data_folder, num_classes, batch_size=utils_model.BATCH_SIZE, 
         acc_title = 'IoU metrics'
         acc_axis = 'IoU coef'
         loss_title = 'IoU loss'
+    elif USE_MIOU_METRICS:
+        acc = 'mIOU'
+        val_acc = 'val_mIOU'
+        acc_title = 'mIoU metrics'
+        acc_axis = 'mIoU coef'
+        loss_title = 'mIoU loss'
     else:
         acc = 'accuracy'
         val_acc = 'val_accuracy'
