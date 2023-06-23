@@ -31,12 +31,9 @@ DROP_RATE = 0.50
 LR_ADAM = 0.0001
 
 
-def load_saved_model(saved_model_file=SAVE_MODEL_FILE, custom_objects=None):
+def load_saved_model(saved_model_file=SAVE_MODEL_FILE, **kwargs):
     try:
-        if custom_objects is not None:
-            saved_model = load_model(saved_model_file, custom_objects=custom_objects)
-        else:
-            saved_model = load_model(saved_model_file)
+        saved_model = load_model(saved_model_file, **kwargs)
         return saved_model
     except (ImportError, IOError) as error:
         print(error)
@@ -221,7 +218,7 @@ def train(training_data_folder, num_classes, batch_size=utils_model.BATCH_SIZE, 
         acc = 'mIOU'
         val_acc = 'val_mIOU'
         acc_title = 'mIoU metrics'
-        acc_axis = 'mIoU coef'
+        acc_axis = 'mIoU'
         loss_title = 'mIoU loss'
     else:
         acc = 'accuracy'
@@ -251,12 +248,12 @@ def train(training_data_folder, num_classes, batch_size=utils_model.BATCH_SIZE, 
 def infer(input_images, output_folder = ".", saved_model=SAVE_MODEL_FILE):
     #utils_model.limit_GPU_memory(GPU_MEM_TO_USE_MB)
     if USE_DICE_LOSS:
-        dice_coef, dice_loss = utils_model.dice_coef_and_loss()  # TODO pass num_classes and USE_ONE_HOT here!
+        dice_coef, dice_loss = utils_model.dice_coef_and_loss()  # TODO pass num_classes and USE_ONE_HOT here! Or do not save/load the loss?
         model = load_saved_model(saved_model, custom_objects={dice_loss.__name__: dice_loss, dice_coef.__name__: dice_coef})
     elif USE_IOU_LOSS:
-        iou_coef, iou_loss = utils_model.IoU_coef_and_loss()  # TODO pass num_classes and USE_ONE_HOT here!
-        model = load_saved_model(saved_model,
-                                 custom_objects={iou_loss.__name__: iou_loss, iou_coef.__name__: iou_coef})
+        #iou_coef, iou_loss = utils_model.IoU_coef_and_loss()
+        model = load_saved_model(saved_model, compile=False)  # compile=False is to prevent complaining about missing loss
+                                 #custom_objects={iou_loss.__name__: iou_loss, iou_coef.__name__: iou_coef})  # don't need these for inference
     else:
         model = load_saved_model(saved_model)
     if model is None:
