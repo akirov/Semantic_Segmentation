@@ -12,7 +12,7 @@ Example photo, ground truth mask and segmentation result (predicted mask):
 |:----------------------------------------------:|:--------------------------------------------:|:---------------------------:|
 | ![Photo](./labeled_data/some_photos/photo.jpg) | ![Mask](./labeled_data/some_masks/photo.png) | ![Result](./photo_mask.png) |
 
-Currently U-Net neural network architecture [1] is implemented with some modifications:
+Currently U-Net[^1] neural network architecture is implemented with some modifications:
 ![U-Net](./saved_models/unet_tf.jpg)
 
 ### How to use:
@@ -67,4 +67,4 @@ Python 3.9.13 with OpenCV 4.6.0, keras 2.9.0, matplotlib 3.5.2, numpy 1.22.4, Pi
 
 
 ### References
-1. Ronneberger, O., Fischer, P. and Brox, T. (2015) "U-Net: Convolutional Networks for Biomedical Image Segmentation", CoRR, abs/1505.0. Available at: http://arxiv.org/abs/1505.04597.
+[^1]: Ronneberger, O., Fischer, P. and Brox, T. (2015) "U-Net: Convolutional Networks for Biomedical Image Segmentation", CoRR, abs/1505.0. Available at: http://arxiv.org/abs/1505.04597.
